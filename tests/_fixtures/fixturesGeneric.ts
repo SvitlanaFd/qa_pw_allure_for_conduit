@@ -3,6 +3,9 @@ import { Logger } from '../../src/common/logger/Logger';
 import { generateNewUserData } from '../../src/common/testData/generateNewUserData';
 import * as allure from 'allure-js-commons';
 import { parseTestTreeHierarchy } from '../../src/common/helpers/allureHelpers';
+import { SettingsPage } from '../../src/ui/pages/SettingsPage';
+import { rmSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 export const test = base.extend<
   {
@@ -13,9 +16,12 @@ export const test = base.extend<
     users;
     infoTestLog;
     addAllureTestHierarchy;
+    settingsPage;
+    addAllureTestHierarchy;
   },
   {
     logger;
+    clearAllureResults: void;
   }
 >({
   usersNumber: [1, { option: true }],
@@ -34,6 +40,11 @@ export const test = base.extend<
     const user = generateNewUserData(logger);
 
     await use(user);
+  },
+  settingsPage: async ({ page }, use) => {
+    const settingsPage = new SettingsPage(page);
+
+    await use(settingsPage);
   },
   users: async ({ logger, usersNumber }, use) => {
     const users = Array(usersNumber);
@@ -83,5 +94,17 @@ export const test = base.extend<
       await use('addAllureTestHierarhy');
     },
     { scope: 'test', auto: true },
+  ],
+  clearAllureResults: [
+    async ({}, use, workerInfo) => {
+      if (workerInfo.workerIndex === 0) {
+        const allureResultsPath = resolve(process.cwd(), 'allure-results');
+
+        rmSync(allureResultsPath, { recursive: true, force: true });
+      }
+
+      await use();
+    },
+    { scope: 'worker', auto: true },
   ],
 });
