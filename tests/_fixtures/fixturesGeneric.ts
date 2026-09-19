@@ -17,7 +17,6 @@ export const test = base.extend<
     infoTestLog;
     addAllureTestHierarchy;
     settingsPage;
-    addAllureTestHierarchy;
   },
   {
     logger;
